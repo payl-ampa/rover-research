@@ -68,14 +68,19 @@ class _MyHomePageState extends State<MyHomePage> {
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
       _counter++;
-      createRaylibWindow();
+      if (!_isWindowOpen){
+        createRaylibWindow();
+      } else {
+        print("Window already open");
+      }
     });
   }
   
   @override
   void initState(){
     initLibrary(
-      linux: '/home/eras/Programming/Rover/Research/threed_flutter/lib/include/libraylib.so',
+      linux: 'lib/include/libraylib.so',
+      windows: 'lib/include/raylib.dll',
     );
     super.initState();
   }
@@ -84,18 +89,13 @@ class _MyHomePageState extends State<MyHomePage> {
     const screenWidth = 800;
     const screenHeight = 450;
 
-    if (!_isWindowOpen){
-      if (initWindow(
-        screenWidth,
-        screenHeight,
-        'dart-raylib [core] example - 3d camera free',
-      )){
-        print("Window initialized successfully");
-        _isWindowOpen = true;
-      } else {
-        print("Window failed to initialize");
-      }
-    }
+    
+    initWindow(
+      screenWidth,
+      screenHeight,
+      'dart-raylib [core] example - 3d camera free',
+    );
+    _isWindowOpen = true;
 
     // Define the camera to look into our 3d world
     final camera = Camera(
@@ -156,6 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     closeWindow();
+    _isWindowOpen = false;
 
   }
 

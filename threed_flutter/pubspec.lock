@@ -61,10 +61,10 @@ packages:
     dependency: transitive
     description:
       name: ffi
-      sha256: "493f37e7df1804778ff3a53bd691d8692ddf69702cf4c1c1096a2e41b4779e21"
+      sha256: "13a6ccf6a459a125b3fcdb6ec73bd5ff90822e071207c663bfd1f70062d51d18"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "1.2.1"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -150,8 +150,8 @@ packages:
   raylib:
     dependency: "direct main"
     description:
-      path: "/home/eras/Programming/Rover/Research/dart-raylib"
-      relative: false
+      path: "../dart-raylib"
+      relative: true
     source: path
     version: "0.3.0"
   sky_engine:

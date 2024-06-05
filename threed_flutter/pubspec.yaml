@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   raylib:
-    path: "/home/eras/Programming/Rover/Research/dart-raylib"
+    path: "../dart-raylib"
 
 
 
