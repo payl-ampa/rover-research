@@ -1,0 +1,3 @@
+[submodule "dart-raylib"]
+	path = dart-raylib
+	url = https://github.com/pgrwe/dart-raylib
