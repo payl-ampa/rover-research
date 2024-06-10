@@ -1,6 +1,0 @@
-[submodule "dart-raylib"]
-	path = dart-raylib
-	url = https://github.com/pgrwe/dart-raylib
-[submodule "window_manager"]
-	path = window_manager
-	url = https://github.com/leanflutter/window_manager
