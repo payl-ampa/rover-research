@@ -1,6 +1,9 @@
-[submodule "dart-raylib"]
-	path = dart-raylib
-	url = https://github.com/pgrwe/dart-raylib
+[submodule "include/dart-raylib"]
+	path = include/dart-raylib
+	url = https://github.com/payl-ampa/dart-raylib
 [submodule "window_manager"]
 	path = window_manager
-	url = ./window_manager/
+	url = https://github.com/leanflutter/window_manager
+[submodule "include/preference_list"]
+	path = include/preference_list
+	url = https://github.com/payl-ampa/preference_list
