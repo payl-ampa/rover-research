@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:raylib/raylib.dart';
 
 void main() {
@@ -58,20 +59,32 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  Color _color = Color.red;
   bool _isWindowOpen = false;
 
-  void _incrementCounter() {
+  void _runRaylib() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
       if (!_isWindowOpen){
         createRaylibWindow();
       } else {
-        print("Window already open");
+        print("Refreshing");
+      }
+    });
+  }
+
+  void _updateColor(){
+    setState(() {
+      _counter++;
+      if (!_isWindowOpen){
+        print("Window is not open, open the window to see color changes");
+      } else {
+        var list = [Color.beige, Color.blue, Color.brown];  
+        _color = list[_counter % list.length]; 
       }
     });
   }
@@ -85,22 +98,21 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  // Creates a glfw window outset of flutter's context, still useful for passing data
+  // Creates a glfw window outside of flutter's context, still useful for passing data
   void createRaylibWindow() async{
     const screenWidth = 800;
     const screenHeight = 450;
 
-    
     initWindow(
       screenWidth,
       screenHeight,
-      'dart-raylib [core] example - 3d camera free',
+      'flutter-raylib [core] initial testing',
     );
     _isWindowOpen = true;
 
     // Define the camera to look into our 3d world
     final camera = Camera(
-      position: Vector3(10, 10, 10), // Camera position
+      position: Vector3(10, 20, 20), // Camera position
       target: Vector3.zero(), // Camera looking at point
       up: Vector3(0, 1, 0), // Camera up vector (rotation towards target)
       fovy: 45, // Camera field-of-view Y
@@ -108,10 +120,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final cubePosition = Vector3.zero();
 
-    setCameraMode(camera, CameraMode.free); // Set a free camera mode
+    setCameraMode(camera, CameraMode.orbital);
 
     setTargetFPS(60);
 
+    // This really needs to be in its own thread
     while (!windowShouldClose()) {
       await Future.delayed(const Duration(milliseconds: 0));
       updateCamera(camera);
@@ -124,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
       beginMode3D(camera);
 
-      drawCube(cubePosition, 2, 2, 2, Color.red);
+      drawCube(cubePosition, 2, 2, 2, _color);
       drawCubeWires(cubePosition, 2, 2, 2, Color.maroon);
 
       drawGrid(10, 1);
@@ -134,31 +147,17 @@ class _MyHomePageState extends State<MyHomePage> {
       drawRectangle(10, 10, 320, 133, fade(Color.skyBlue, .5));
       drawRectangleLines(10, 10, 320, 133, Color.blue);
 
-      drawText('Free camera default controls:', 20, 20, 10, Color.black);
-      drawText('- Mouse Wheel to Zoom in-out', 40, 40, 10, Color.darkGray);
-      drawText('- Mouse Wheel Pressed to Pan', 40, 60, 10, Color.darkGray);
-      drawText(
-        '- Alt + Mouse Wheel Pressed to Rotate',
-        40,
-        80,
-        10,
-        Color.darkGray,
-      );
-      drawText(
-        '- Alt + Ctrl + Mouse Wheel Pressed for Smooth Zoom',
-        40,
-        100,
-        10,
-        Color.darkGray,
-      );
-      drawText('- Z to zoom to (0, 0, 0)', 40, 120, 10, Color.darkGray);
+      drawText('Orbital camera:', 20, 20, 10, Color.black);
+      drawText('- Mouse Wheel to Zoom in-out', 20, 40, 10, Color.darkGray);
+      drawText('Known Bugs:', 20, 60, 10, Color.black);
+      drawText('- Currently hot restarting with the raylib window open \n  crashes the program', 20, 80, 10, Color.darkGray);
+      drawText('- Need to multithread (isolates), refresh is broken', 20, 120, 10, Color.darkGray);
 
       endDrawing();
     }
 
     closeWindow();
     _isWindowOpen = false;
-
   }
 
   @override
@@ -199,19 +198,24 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'You have pushed the button this many times:',
+              'Raylib-Flutter demo:',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            FloatingActionButton.extended(
+              onPressed: _updateColor,
+              tooltip: 'Changes cube color',
+              label: const Text(
+                'Change the Cube Color!',
+                textAlign: TextAlign.center,
+                ),
+              ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _runRaylib,
+        tooltip: 'refresh raylib',
+        label: const Text('Click to Refresh or Start Raylib'),
+        icon: const Icon(Icons.refresh),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
