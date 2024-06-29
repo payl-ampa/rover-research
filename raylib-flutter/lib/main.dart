@@ -1,6 +1,12 @@
+import 'dart:ffi';
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'dart:async';
 import 'package:raylib/raylib.dart';
+import 'package:raylib_flutter/src/data.dart';
+import 'package:raylib_flutter/src/raylib_isolate.dart';
+import 'package:typed_isolate/typed_isolate.dart';
 
 void main() {
   runApp(const MyApp());
@@ -57,109 +63,61 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class RaylibController extends IsolateParent<RaylibCommand, IsolatePayload>{
   int _counter = 0;
   Color _color = Color.red;
-  bool _isWindowOpen = false;
+  bool _rlContextIsAlive = false;
 
-  void _runRaylib() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      if (!_isWindowOpen){
-        createRaylibWindow();
-      } else {
-        print("Refreshing");
-      }
-    });
+  RaylibIsolate rlIsolate = RaylibIsolate();
+
+  @override
+  Future<void> init() async {
+    super.init();
   }
+
+  @override
+  void onData(IsolatePayload data, Object id){
+    // print("Received data from child: ${data.windowShouldClose}");
+    if (data.windowShouldClose){
+      this.dispose();
+      super.dispose();
+      _rlContextIsAlive = false;
+    }
+  }  
+
+  void updateColor(){
+    _counter++;
+    var list = [Color.beige, Color.blue, Color.brown];  
+    _color = list[_counter % list.length]; 
+    send(data: RaylibCommand(color: _color), id: rlIsolate.id);
+  }
+
+  void createRaylibContext(){
+    try{
+      spawn(RaylibIsolate());
+    } catch (e){
+      print("Error: $e");
+    }
+  }
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+
+  RaylibController controller = RaylibController();
 
   void _updateColor(){
     setState(() {
-      _counter++;
-      if (!_isWindowOpen){
-        print("Window is not open, open the window to see color changes");
-      } else {
-        var list = [Color.beige, Color.blue, Color.brown];  
-        _color = list[_counter % list.length]; 
-      }
+      controller.updateColor();
     });
   }
   
   @override
   void initState(){
-    initLibrary(
-      linux: 'lib/include/libraylib.so',
-      windows: 'lib/include/raylib.dll',
-    );
     super.initState();
+    controller.init();
   }
 
   // Creates a glfw window outside of flutter's context, still useful for passing data
-  void createRaylibWindow() async{
-    const screenWidth = 800;
-    const screenHeight = 450;
-
-    initWindow(
-      screenWidth,
-      screenHeight,
-      'flutter-raylib [core] initial testing',
-    );
-    _isWindowOpen = true;
-
-    // Define the camera to look into our 3d world
-    final camera = Camera(
-      position: Vector3(10, 20, 20), // Camera position
-      target: Vector3.zero(), // Camera looking at point
-      up: Vector3(0, 1, 0), // Camera up vector (rotation towards target)
-      fovy: 45, // Camera field-of-view Y
-    );
-
-    final cubePosition = Vector3.zero();
-
-    setCameraMode(camera, CameraMode.orbital);
-
-    setTargetFPS(60);
-
-    // This really needs to be in its own thread
-    while (!windowShouldClose()) {
-      await Future.delayed(const Duration(milliseconds: 0));
-      updateCamera(camera);
-
-      if (isKeyDown(KeyboardKey.z)) camera.target = Vector3.zero();
-
-      beginDrawing();
-
-      clearBackground(Color.rayWhite);
-
-      beginMode3D(camera);
-
-      drawCube(cubePosition, 2, 2, 2, _color);
-      drawCubeWires(cubePosition, 2, 2, 2, Color.maroon);
-
-      drawGrid(10, 1);
-
-      endMode3D();
-
-      drawRectangle(10, 10, 320, 133, fade(Color.skyBlue, .5));
-      drawRectangleLines(10, 10, 320, 133, Color.blue);
-
-      drawText('Orbital camera:', 20, 20, 10, Color.black);
-      drawText('- Mouse Wheel to Zoom in-out', 20, 40, 10, Color.darkGray);
-      drawText('Known Bugs:', 20, 60, 10, Color.black);
-      drawText('- Currently hot restarting with the raylib window open \n  crashes the program', 20, 80, 10, Color.darkGray);
-      drawText('- Need to multithread (isolates), refresh is broken', 20, 120, 10, Color.darkGray);
-
-      endDrawing();
-    }
-
-    closeWindow();
-    _isWindowOpen = false;
-  }
-
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -212,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _runRaylib,
+        onPressed: controller.createRaylibContext,
         tooltip: 'refresh raylib',
         label: const Text('Click to Refresh or Start Raylib'),
         icon: const Icon(Icons.refresh),
