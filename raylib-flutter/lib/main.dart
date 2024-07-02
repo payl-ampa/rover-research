@@ -66,23 +66,18 @@ class MyHomePage extends StatefulWidget {
 class RaylibController extends IsolateParent<RaylibCommand, IsolatePayload>{
   int _counter = 0;
   Color _color = Color.red;
-  bool _rlContextIsAlive = false;
 
   RaylibIsolate rlIsolate = RaylibIsolate();
 
   @override
   Future<void> init() async {
     super.init();
+    spawn(rlIsolate);
   }
 
   @override
   void onData(IsolatePayload data, Object id){
-    // print("Received data from child: ${data.windowShouldClose}");
-    if (data.windowShouldClose){
-      this.dispose();
-      super.dispose();
-      _rlContextIsAlive = false;
-    }
+    print("Received data from child: ${data.windowShouldClose}");
   }  
 
   void updateColor(){
@@ -93,11 +88,7 @@ class RaylibController extends IsolateParent<RaylibCommand, IsolatePayload>{
   }
 
   void createRaylibContext(){
-    try{
-      spawn(RaylibIsolate());
-    } catch (e){
-      print("Error: $e");
-    }
+    rlIsolate.raylibContext();
   }
 }
 

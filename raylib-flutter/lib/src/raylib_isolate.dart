@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:raylib_flutter/src/data.dart';
 import 'package:typed_isolate/typed_isolate.dart';
 
@@ -9,9 +11,12 @@ class RaylibIsolate extends IsolateChild<IsolatePayload, RaylibCommand>{
   Color cubecolor = Color.red;
 
   RaylibIsolate() : super(id: 'raylib-isolate');
-
   @override
   void run(){
+    raylibContext();
+  }
+
+  void raylibContext() async{
 
     initLibrary(
       linux: 'lib/include/libraylib.so',
@@ -40,9 +45,8 @@ class RaylibIsolate extends IsolateChild<IsolatePayload, RaylibCommand>{
     setCameraMode(camera, CameraMode.orbital);
     setTargetFPS(60);
 
-    // This really needs to be in its own thread
-    while(!windowShouldClose()) {
-
+    while (!windowShouldClose()) {  
+      await Future.delayed(const Duration(milliseconds: 0));
       updateCamera(camera);
 
       if (isKeyDown(KeyboardKey.z)) camera.target = Vector3.zero();
@@ -74,8 +78,8 @@ class RaylibIsolate extends IsolateChild<IsolatePayload, RaylibCommand>{
       send(IsolatePayload(windowShouldClose: false));
     } 
 
-    closeWindow();
     send(IsolatePayload(windowShouldClose: true));
+    closeWindow();
   }
 
   @override
